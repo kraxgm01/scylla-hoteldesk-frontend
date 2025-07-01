@@ -1,103 +1,257 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState } from "react"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { RequestCard } from "@/components/request-card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ClipboardList, Users, Bed, TrendingUp, Filter, Plus, RefreshCw, AlertCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRequests } from "@/hooks/use-requests"
+import { HotelRequest } from "@/types/request"
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function Dashboard() {
+  const [filter, setFilter] = useState("all")
+  const { toast } = useToast()
+  const { 
+    requests, 
+    loading, 
+    error, 
+    refetch, 
+    approveRequest, 
+    declineRequest 
+  } = useRequests()
+
+  const handleApprove = async (id: string) => {
+    try {
+      await approveRequest(id)
+      toast({
+        title: "Request Approved",
+        description: "The request has been approved successfully.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve request. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDecline = async (id: string) => {
+    try {
+      await declineRequest(id)
+      toast({
+        title: "Request Declined",
+        description: "The request has been declined.",
+        variant: "destructive",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to decline request. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleCall = (id: string) => {
+    const request = requests.find((req) => req._id === id)
+    toast({
+      title: "Calling Guest",
+      description: `Initiating call to guest in room ${request?.roomNumber}...`,
+    })
+  }
+
+  const handleRefresh = async () => {
+    try {
+      await refetch()
+      toast({
+        title: "Refreshed",
+        description: "Requests have been updated.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh requests.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const filteredRequests = requests.filter((req) => {
+    if (filter === "all") return true
+    return req.status === filter
+  })
+
+  const stats = {
+    totalRequests: requests.length,
+    pendingRequests: requests.filter((r) => r.status === "pending").length,
+    assignedRequests: requests.filter((r) => r.status === "assigned").length,
+    completedRequests: requests.filter((r) => r.status === "completed").length,
+    totalRooms: 150,
+    occupiedRooms: 89,
+    totalGuests: 156,
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <DashboardHeader />
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6 text-center">
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Error Loading Requests</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={handleRefresh} className="w-full">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <DashboardHeader />
+
+      <div className="flex-1 space-y-6 p-6">
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalRequests}</div>
+              <p className="text-xs text-muted-foreground">
+                {loading ? "Loading..." : "All time"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Badge variant="secondary">{stats.pendingRequests}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+              <p className="text-xs text-muted-foreground">Requires attention</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Assigned</CardTitle>
+              <Badge variant="default">{stats.assignedRequests}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.assignedRequests}</div>
+              <p className="text-xs text-muted-foreground">In progress</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <Badge variant="outline">{stats.completedRequests}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.completedRequests}</div>
+              <p className="text-xs text-muted-foreground">Today</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$12,450</div>
+              <p className="text-xs text-muted-foreground">+8% from last month</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Requests Section */}
+        <div>
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">Recent Requests</h2>
+                <p className="text-muted-foreground">Manage guest requests and service orders</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRefresh}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Select value={filter} onValueChange={setFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Requests</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="assigned">Assigned</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Request
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="h-20 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredRequests.map((request) => (
+                <RequestCard
+                  key={request._id}
+                  request={request}
+                  onApprove={handleApprove}
+                  onDecline={handleDecline}
+                  onCall={handleCall}
+                />
+              ))}
+              {filteredRequests.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No requests found for the selected filter.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-  );
+  )
 }
