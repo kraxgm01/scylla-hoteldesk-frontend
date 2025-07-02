@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { HotelRequest } from '@/types/request';
 import { requestsApi, ApiError } from '@/lib/api';
 
@@ -10,19 +10,75 @@ export interface UseRequestsReturn {
   approveRequest: (id: string) => Promise<void>;
   declineRequest: (id: string) => Promise<void>;
   updateRequestStatus: (id: string, status: HotelRequest['status']) => Promise<void>;
+  isPolling: boolean;
+  togglePolling: (enabled: boolean) => void;
 }
 
-export function useRequests(): UseRequestsReturn {
+export interface UseRequestsOptions {
+  pollingInterval?: number; // in milliseconds, default: 60000 (1 minute)
+  enablePolling?: boolean; // default: true
+  pollingOnlyWhenActive?: boolean; // default: true - only poll when tab is active
+}
+
+export function useRequests(options: UseRequestsOptions = {}): UseRequestsReturn {
+  const {
+    pollingInterval = 60000, // 1 minute
+    enablePolling = true,
+    pollingOnlyWhenActive = true
+  } = options;
+
   const [requests, setRequests] = useState<HotelRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(enablePolling);
+  
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isActiveRef = useRef(true);
 
-  const fetchRequests = useCallback(async () => {
+  // Track if the page/tab is active
+  useEffect(() => {
+    if (!pollingOnlyWhenActive) return;
+
+    const handleVisibilityChange = () => {
+      isActiveRef.current = !document.hidden;
+      
+      // If page becomes active and polling is enabled, fetch immediately
+      if (isActiveRef.current && isPolling) {
+        fetchRequests(false); // Don't show loading spinner for background updates
+      }
+    };
+
+    const handleFocus = () => {
+      isActiveRef.current = true;
+      if (isPolling) {
+        fetchRequests(false);
+      }
+    };
+
+    const handleBlur = () => {
+      isActiveRef.current = false;
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [isPolling, pollingOnlyWhenActive]);
+
+  const fetchRequests = useCallback(async (showLoading: boolean = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       setError(null);
       const data = await requestsApi.getAll();
-      setRequests(data);
+      console.log('Fetched requests:', data);
+      setRequests(data.reverse());
     } catch (err) {
       const errorMessage = err instanceof ApiError 
         ? err.message 
@@ -30,9 +86,48 @@ export function useRequests(): UseRequestsReturn {
       setError(errorMessage);
       console.error('Error fetching requests:', err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
+
+  const startPolling = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    intervalRef.current = setInterval(() => {
+      // Only poll if polling is enabled and (tab is active OR we don't care about tab state)
+      if (isPolling && (!pollingOnlyWhenActive || isActiveRef.current)) {
+        fetchRequests(false); // Don't show loading spinner for automatic updates
+      }
+    }, pollingInterval);
+  }, [pollingInterval, isPolling, pollingOnlyWhenActive, fetchRequests]);
+
+  const stopPolling = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const togglePolling = useCallback((enabled: boolean) => {
+    setIsPolling(enabled);
+  }, []);
+
+  // Start/stop polling based on isPolling state
+  useEffect(() => {
+    if (isPolling) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+
+    return () => {
+      stopPolling();
+    };
+  }, [isPolling, startPolling, stopPolling]);
 
   const approveRequest = useCallback(async (id: string) => {
     try {
@@ -97,17 +192,27 @@ export function useRequests(): UseRequestsReturn {
     }
   }, []);
 
+  // Initial fetch
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, [stopPolling]);
 
   return {
     requests,
     loading,
     error,
-    refetch: fetchRequests,
+    refetch: () => fetchRequests(true),
     approveRequest,
     declineRequest,
     updateRequestStatus,
+    isPolling,
+    togglePolling,
   };
 }

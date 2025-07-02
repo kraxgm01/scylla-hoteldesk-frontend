@@ -1,41 +1,43 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { RequestCard } from "@/components/request-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ClipboardList, Users, Bed, TrendingUp, Filter, Plus, RefreshCw, AlertCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRequests } from "@/hooks/use-requests"
 import { HotelRequest } from "@/types/request"
 
 export default function Dashboard() {
   const [filter, setFilter] = useState("all")
-  const { toast } = useToast()
+  
+  // Configure the hook with auto-polling (always enabled)
   const { 
     requests, 
     loading, 
     error, 
     refetch, 
     approveRequest, 
-    declineRequest 
-  } = useRequests()
+    declineRequest
+  } = useRequests({
+    pollingInterval: 60000, // 1 minute
+    enablePolling: true,
+    pollingOnlyWhenActive: true
+  })
 
   const handleApprove = async (id: string) => {
     try {
       await approveRequest(id)
-      toast({
-        title: "Request Approved",
+      toast.success("Request Approved", {
         description: "The request has been approved successfully.",
       })
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to approve request. Please try again.",
-        variant: "destructive",
       })
     }
   }
@@ -43,24 +45,19 @@ export default function Dashboard() {
   const handleDecline = async (id: string) => {
     try {
       await declineRequest(id)
-      toast({
-        title: "Request Declined",
+      toast.error("Request Declined", {
         description: "The request has been declined.",
-        variant: "destructive",
       })
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to decline request. Please try again.",
-        variant: "destructive",
       })
     }
   }
 
   const handleCall = (id: string) => {
     const request = requests.find((req) => req._id === id)
-    toast({
-      title: "Calling Guest",
+    toast.info("Calling Guest", {
       description: `Initiating call to guest in room ${request?.roomNumber}...`,
     })
   }
@@ -68,15 +65,12 @@ export default function Dashboard() {
   const handleRefresh = async () => {
     try {
       await refetch()
-      toast({
-        title: "Refreshed",
+      toast.success("Refreshed", {
         description: "Requests have been updated.",
       })
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to refresh requests.",
-        variant: "destructive",
       })
     }
   }
@@ -123,7 +117,7 @@ export default function Dashboard() {
 
       <div className="flex-1 space-y-6 p-6">
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
@@ -169,17 +163,6 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">Today</p>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$12,450</div>
-              <p className="text-xs text-muted-foreground">+8% from last month</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Requests Section */}
@@ -188,7 +171,9 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight">Recent Requests</h2>
-                <p className="text-muted-foreground">Manage guest requests and service orders</p>
+                <p className="text-muted-foreground">
+                  Manage guest requests and service orders
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -247,8 +232,8 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-muted-foreground">
                   No requests found for the selected filter.
                 </div>
-              )}
-            </div>
+                )}
+              </div>
           )}
         </div>
       </div>

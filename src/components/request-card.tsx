@@ -266,7 +266,7 @@ export function RequestCard({
                   <DetailRow
                     icon={User}
                     label="Guest ID"
-                    value={`...${request.guest._id?.slice(-8)}`}
+                    value={`...${request.guest}`}
                   />
                   <DetailRow
                     icon={MapPin}
