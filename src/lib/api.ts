@@ -1,4 +1,6 @@
 import { HotelRequest, ApiResponse, RequestsResponse } from '@/types/request';
+import { Room, CreateRoomData } from '@/types/room';
+import { Guest, CreateGuestData, AssignRoomData } from '@/types/guests';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
 
@@ -42,6 +44,47 @@ async function fetchApi<T>(
     throw new ApiError(0, `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
+
+// Utility functions
+export const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const getStatusColor = (status: Room['status']) => {
+  switch (status) {
+    case 'vacant':
+      return 'green';
+    case 'occupied':
+      return 'blue';
+    case 'cleaning':
+      return 'purple';
+    case 'maintenance':
+      return 'orange';
+    default:
+      return 'gray';
+  }
+};
+
+export const getRoomTypeLabel = (type: Room['type']) => {
+  switch (type) {
+    case 'standard':
+      return 'Standard';
+    case 'deluxe':
+      return 'Deluxe';
+    case 'suite':
+      return 'Suite';
+    case 'presidential':
+      return 'Presidential';
+    default:
+      return 'Unknown';
+  }
+};
 
 export const requestsApi = {
   // Get all requests
@@ -105,5 +148,48 @@ export const requestsApi = {
     return response.data;
   },
 };
+
+export const roomsApi = {
+  getAllRooms: async (): Promise<Room[]> => {
+    const response = await fetchApi<ApiResponse<Room[]>>('/rooms');
+    return response.data;
+  },
+
+  createRoom: async (roomData: CreateRoomData): Promise<Room> => {
+    const response = await fetchApi<ApiResponse<Room>>('/rooms', {
+      method: 'POST',
+      body: JSON.stringify(roomData),
+    });
+    return response.data;
+  },
+
+  updateRoom: async (id: string, roomData: Partial<CreateRoomData>): Promise<Room> => {
+    const response = await fetchApi<ApiResponse<Room>>(`/rooms/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(roomData),
+    });
+    return response.data;
+  },
+}
+
+export const guestsApi = {
+  getAllGuests: async (): Promise<{ success: boolean; data: Guest[] }> => {
+    return fetchApi('/guests');
+  },
+
+  createGuest: async (guestData: CreateGuestData): Promise<{ success: boolean; data: Guest }> => {
+    return fetchApi('/guests', {
+      method: 'POST',
+      body: JSON.stringify(guestData),
+    });
+  },
+
+  assignRoom: async (assignRoomData: AssignRoomData): Promise<{ success: boolean; data: Guest }> => {
+    return fetchApi('/guests/assign-room', {
+      method: 'POST',
+      body: JSON.stringify(assignRoomData),
+    });
+  },
+}
 
 export { ApiError };

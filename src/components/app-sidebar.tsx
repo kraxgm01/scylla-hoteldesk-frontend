@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Calendar, Home, Users, Bed, ClipboardList, Settings, Plus, UserPlus, Building } from "lucide-react"
 
 import {
@@ -16,6 +17,8 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { AddRoomDialog } from "@/components/add-room-dialog"
+import { AddGuestDialog } from "@/components/add-guest-dialog"
 
 const menuItems = [
   {
@@ -69,6 +72,25 @@ const quickActions = [
 ]
 
 export function AppSidebar() {
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false)
+  const [isAddGuestOpen, setIsAddGuestOpen] = useState(false)
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case "add-room":
+        setIsAddRoomOpen(true)
+        break
+      case "add-guest":
+        setIsAddGuestOpen(true)
+        break
+      case "new-booking":
+        // Handle new booking action
+        break
+      default:
+        break
+    }
+  }
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -102,7 +124,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {quickActions.map((action) => (
                 <SidebarMenuItem key={action.title}>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton onClick={() => handleQuickAction(action.action)}>
                     <action.icon />
                     <span>{action.title}</span>
                   </SidebarMenuButton>
@@ -119,6 +141,8 @@ export function AppSidebar() {
           </Button>
         </div>
       </SidebarFooter>
+      <AddRoomDialog open={isAddRoomOpen} onOpenChange={setIsAddRoomOpen} />
+      <AddGuestDialog open={isAddGuestOpen} onOpenChange={setIsAddGuestOpen} />
     </Sidebar>
   )
 }
