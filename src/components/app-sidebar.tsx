@@ -26,11 +26,11 @@ const menuItems = [
     url: "/",
     icon: Home,
   },
-  {
-    title: "Requests",
-    url: "/requests",
-    icon: ClipboardList,
-  },
+  // {
+  //   title: "Requests",
+  //   url: "/requests",
+  //   icon: ClipboardList,
+  // },
   {
     title: "Rooms",
     url: "/rooms",

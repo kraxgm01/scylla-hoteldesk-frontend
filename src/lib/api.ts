@@ -163,6 +163,12 @@ export const roomsApi = {
     return response.data;
   },
 
+  deleteRoom: async (id: string): Promise<void> => {
+    await fetchApi<ApiResponse<null>>(`/rooms/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   updateRoom: async (id: string, roomData: Partial<CreateRoomData>): Promise<Room> => {
     const response = await fetchApi<ApiResponse<Room>>(`/rooms/${id}`, {
       method: 'PUT',
@@ -181,6 +187,12 @@ export const guestsApi = {
     return fetchApi('/guests', {
       method: 'POST',
       body: JSON.stringify(guestData),
+    });
+  },
+
+  deleteGuest: async (id: string): Promise<{ success: boolean; data: null }> => {
+    return fetchApi(`/guests/${id}`, {
+      method: 'DELETE',
     });
   },
 
