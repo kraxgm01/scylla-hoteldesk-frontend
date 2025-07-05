@@ -73,7 +73,7 @@ interface RoomCardProps {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "available":
+    case "vacant":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
     case "occupied":
       return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
@@ -88,7 +88,7 @@ const getStatusColor = (status: string) => {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case "available":
+    case "vacant":
       return CheckCircle
     case "occupied":
       return User
@@ -186,7 +186,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="vacant">Vacant</SelectItem>
                   <SelectItem value="occupied">Occupied</SelectItem>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
                   <SelectItem value="cleaning">Cleaning</SelectItem>
@@ -367,7 +367,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="vacant">Vacant</SelectItem>
             <SelectItem value="occupied">Occupied</SelectItem>
             <SelectItem value="maintenance">Maintenance</SelectItem>
             <SelectItem value="cleaning">Cleaning</SelectItem>

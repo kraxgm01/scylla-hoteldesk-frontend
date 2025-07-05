@@ -130,7 +130,7 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
       const rooms = await roomsApi.getAllRooms();
       setAvailableRooms(
         rooms.filter(
-          (room) => room.status === "vacant" || room.status === "available"
+          (room) => room.status === "vacant"
         )
       );
     } catch {
@@ -155,6 +155,10 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
   const handleDeleteGuest = async () => {
     try {
       await guestsApi.deleteGuest(guest._id);
+      // Mark the room as vacant if guest has a room assigned
+      if (guest.room) {
+        await roomsApi.updateRoom(guest.room, { status: "vacant" });
+      }
       toast.success("Guest deleted!");
       setShowDeleteModal(false);
       onUpdate(guest._id, { deleted: true });

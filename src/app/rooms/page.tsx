@@ -88,7 +88,7 @@ export default function RoomsPage() {
 
   const stats = {
     totalRooms: rooms.length,
-    availableRooms: rooms.filter((r) => r.status === "available").length,
+    availableRooms: rooms.filter((r) => r.status === "vacant").length,
     occupiedRooms: rooms.filter((r) => r.status === "occupied").length,
     maintenanceRooms: rooms.filter((r) => r.status === "maintenance").length,
     cleaningRooms: rooms.filter((r) => r.status === "cleaning").length,
