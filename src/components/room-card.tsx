@@ -35,6 +35,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { roomsApi } from "@/lib/api"
+import { toast } from "sonner"
 
 interface RoomFeatures {
   beds: number
@@ -137,6 +139,7 @@ const getRoomTypeColor = (type: string) => {
 
 export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [deleting, setDeleting] = useState(false) // <-- Add state for delete loading
   const StatusIcon = getStatusIcon(room.status)
 
   const timeAgo = (date: string) => {
@@ -148,6 +151,19 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
     interval = seconds / 60
     if (interval > 1) return Math.floor(interval) + "m ago"
     return "Just now"
+  }
+
+  const handleDeleteRoom = async () => {
+    setDeleting(true)
+    try {
+      await roomsApi.deleteRoom(room._id)
+      toast.success("Room deleted!")
+      window.location.reload() // Or call a prop to refresh the list if available
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete room")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   if (viewMode === "list") {
@@ -162,7 +178,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               </div>
               <div>
                 <h3 className="font-semibold">{room.roomName}</h3>
-                <p className="text-sm text-muted-foreground">Floor {room.floor}</p>
+                <p className="text-sm text-muted-foreground">Floor {room.floor} | {room.roomNumber}</p>
               </div>
             </div>
 
@@ -220,7 +236,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
+                  {/* <DropdownMenuItem>
                     <Eye className="h-4 w-4 mr-2" />
                     View Details
                   </DropdownMenuItem>
@@ -231,11 +247,15 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
                   <DropdownMenuItem>
                     <Settings className="h-4 w-4 mr-2" />
                     Manage
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
+                  </DropdownMenuItem> */}
+                  {/* <DropdownMenuSeparator /> */}
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={handleDeleteRoom}
+                    disabled={deleting}
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    {deleting ? "Deleting..." : "Delete"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -256,7 +276,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               <Badge className={cn("text-xs", getRoomTypeColor(room.type))} variant="secondary">
                 {room.type}
               </Badge>
-              <span className="text-sm text-muted-foreground">Floor {room.floor}</span>
+              <span className="text-sm text-muted-foreground">Floor {room.floor} | {room.roomNumber}</span>
             </div>
           </div>
           <DropdownMenu>
@@ -266,7 +286,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Eye className="h-4 w-4 mr-2" />
                 View Details
               </DropdownMenuItem>
@@ -277,11 +297,15 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               <DropdownMenuItem>
                 <Settings className="h-4 w-4 mr-2" />
                 Manage
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              </DropdownMenuItem> */}
+              {/* <DropdownMenuSeparator /> */}
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={handleDeleteRoom}
+                disabled={deleting}
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                {deleting ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

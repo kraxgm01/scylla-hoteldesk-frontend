@@ -421,7 +421,7 @@ export function AddRoomDialog({ open, onOpenChange, onRoomCreated }: AddRoomDial
           </Card>
 
           {/* Housekeeping Status */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-lg">Housekeeping Status</CardTitle>
             </CardHeader>
@@ -456,7 +456,7 @@ export function AddRoomDialog({ open, onOpenChange, onRoomCreated }: AddRoomDial
                 />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <DialogFooter>
