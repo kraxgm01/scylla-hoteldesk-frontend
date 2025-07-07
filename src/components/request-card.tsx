@@ -72,7 +72,15 @@ interface HotelRequest {
     _id: string;
     name?: string; // Assuming guest name might be populated
   };
-  type: "housekeeping" | "maintenance" | "roomService" | "frontDesk" | "spa" | "activity" | "transport" | "laundry";
+  type:
+    | "housekeeping"
+    | "maintenance"
+    | "roomService"
+    | "frontDesk"
+    | "spa"
+    | "activity"
+    | "transport"
+    | "laundry";
   category?: string;
   details: RequestDetails;
   status: "pending" | "assigned" | "in-progress" | "completed" | "cancelled";
@@ -211,8 +219,10 @@ export function RequestCard({
     if (!time) return "Not set";
     const date = new Date(time);
     const now = new Date();
-    const diffMinutes = Math.floor((date.getTime() - now.getTime()) / (1000 * 60));
-    
+    const diffMinutes = Math.floor(
+      (date.getTime() - now.getTime()) / (1000 * 60)
+    );
+
     if (diffMinutes < 0) return "Overdue";
     if (diffMinutes < 60) return `${diffMinutes}m remaining`;
     if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h remaining`;
@@ -224,8 +234,12 @@ export function RequestCard({
       .map((item) => `${item.quantity || 1}x ${item.name}`)
       .join(", ") || "No items";
 
-  const hasUrgentItems = request.details.items.some(item => item.notes?.toLowerCase().includes('urgent'));
-  const isOverdue = request.estimatedCompletionTime && new Date(request.estimatedCompletionTime) < new Date();
+  const hasUrgentItems = request.details.items.some((item) =>
+    item.notes?.toLowerCase().includes("urgent")
+  );
+  const isOverdue =
+    request.estimatedCompletionTime &&
+    new Date(request.estimatedCompletionTime) < new Date();
 
   return (
     <Card
@@ -246,16 +260,22 @@ export function RequestCard({
         <div className="grid grid-cols-12 items-center gap-4">
           {/* Left section: Type & Room */}
           <div className="col-span-4 flex items-center gap-4">
-            <div className={cn(
-              "p-3 rounded-lg",
-              request.details.urgency === "urgent" ? "bg-red-100 text-red-600" : "bg-muted"
-            )}>
+            <div
+              className={cn(
+                "p-3 rounded-lg",
+                request.details.urgency === "urgent"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-muted"
+              )}
+            >
               <TypeIcon className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-base capitalize">
-                  {request.type === "roomService" ? "Room Service" : request.type.replace("_", " ")}
+                  {request.type === "roomService"
+                    ? "Room Service"
+                    : request.type.replace("_", " ")}
                 </h3>
                 {hasUrgentItems && (
                   <AlertCircle className="h-4 w-4 text-red-500" />
@@ -284,10 +304,17 @@ export function RequestCard({
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Badge className={cn("text-xs", getUrgencyColor(request.details.urgency))}>
+              <Badge
+                className={cn(
+                  "text-xs",
+                  getUrgencyColor(request.details.urgency)
+                )}
+              >
                 {request.details.urgency.toUpperCase()}
               </Badge>
-              <Badge className={cn("text-xs", getPriorityColor(request.priority))}>
+              <Badge
+                className={cn("text-xs", getPriorityColor(request.priority))}
+              >
                 P{request.priority}
               </Badge>
               {request.details.timePreference && (
@@ -318,13 +345,19 @@ export function RequestCard({
               </div>
               <Avatar className="h-9 w-9 hidden sm:flex">
                 <AvatarImage
-                  src={`/placeholder.svg?height=36&width=36&text=${request.guest.name?.[0] || 'G'}`}
+                  src={`/placeholder.svg?height=36&width=36&text=${
+                    request.guest.name?.[0] || "G"
+                  }`}
                 />
                 <AvatarFallback>
                   <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
             </div>
+            {/* Show token here */}
+            <Badge variant="secondary" className="text-xs px-2 py-1">
+              Token: {request.token}
+            </Badge>
             <ChevronDown
               className={cn(
                 "h-5 w-5 text-muted-foreground transition-transform",
@@ -428,14 +461,17 @@ export function RequestCard({
                       className="flex flex-col gap-2 p-3 bg-muted rounded-md"
                     >
                       <div className="flex justify-between items-center">
-                        <span className="font-medium capitalize">{item.name}</span>
+                        <span className="font-medium capitalize">
+                          {item.name}
+                        </span>
                         <Badge variant="secondary" className="text-xs">
                           Qty: {item.quantity || 1}
                         </Badge>
                       </div>
                       {item.notes && (
                         <div className="text-xs text-muted-foreground border-l-2 border-muted-foreground pl-2">
-                          <span className="font-medium">Note:</span> {item.notes}
+                          <span className="font-medium">Note:</span>{" "}
+                          {item.notes}
                         </div>
                       )}
                     </div>
@@ -489,7 +525,9 @@ export function RequestCard({
                           </span>
                         </div>
                         {log.notes && (
-                          <p className="text-muted-foreground mt-1">{log.notes}</p>
+                          <p className="text-muted-foreground mt-1">
+                            {log.notes}
+                          </p>
                         )}
                       </div>
                     ))}
@@ -498,7 +536,7 @@ export function RequestCard({
               )}
             </div>
           </CardContent>
-          
+
           <CardFooter className="bg-muted/50 p-3 flex justify-between">
             <div className="flex gap-2">
               {/* <Button
@@ -537,16 +575,16 @@ export function RequestCard({
                 </Button>
               )}
               {request.status === "assigned" && (
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={() => onUpdateStatus(request._id, "in-progress")}
                 >
                   Assigned
                 </Button>
               )}
               {request.status === "in-progress" && (
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={() => onUpdateStatus(request._id, "completed")}
                 >
                   Complete

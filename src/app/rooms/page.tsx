@@ -43,6 +43,24 @@ export default function RoomsPage() {
     }
   }
 
+  // Function to determine occupancy status based on currentGuest
+  const getOccupancyStatus = (currentGuest: string | null) => {
+    return currentGuest ? "occupied" : "vacant"
+  }
+
+  // Function to get display status for filtering
+  const getDisplayStatus = (room: Room) => {
+    const occupancyStatus = getOccupancyStatus(room.currentGuest)
+    
+    // If room has maintenance or cleaning status, show that
+    if (room.status === "maintenance" || room.status === "cleaning") {
+      return room.status
+    }
+    
+    // Otherwise show occupancy status
+    return occupancyStatus
+  }
+
   const handleStatusChange = async (roomId: string, newStatus: Room['status']) => {
     try {
       // Optimistically update the UI
@@ -79,20 +97,28 @@ export default function RoomsPage() {
     const matchesSearch =
       room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.roomName.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || room.status === statusFilter
+    
+    const displayStatus = getDisplayStatus(room)
+    const matchesStatus = statusFilter === "all" || displayStatus === statusFilter
     const matchesType = typeFilter === "all" || room.type === typeFilter
     const matchesFloor = floorFilter === "all" || room.floor.toString() === floorFilter
 
     return matchesSearch && matchesStatus && matchesType && matchesFloor
   })
 
+  // Updated stats calculation to match room-card logic
   const stats = {
     totalRooms: rooms.length,
-    availableRooms: rooms.filter((r) => r.status === "vacant").length,
-    occupiedRooms: rooms.filter((r) => r.status === "occupied").length,
+    // Available rooms are those that are vacant (no guest) and not in maintenance/cleaning
+    availableRooms: rooms.filter((r) => !r.currentGuest && r.status !== "maintenance" && r.status !== "cleaning").length,
+    // Occupied rooms are those with a current guest
+    occupiedRooms: rooms.filter((r) => r.currentGuest).length,
+    // Maintenance rooms regardless of occupancy
     maintenanceRooms: rooms.filter((r) => r.status === "maintenance").length,
+    // Cleaning rooms regardless of occupancy
     cleaningRooms: rooms.filter((r) => r.status === "cleaning").length,
-    occupancyRate: rooms.length > 0 ? Math.round((rooms.filter((r) => r.status === "occupied").length / rooms.length) * 100) : 0,
+    // Occupancy rate based on rooms with guests
+    occupancyRate: rooms.length > 0 ? Math.round((rooms.filter((r) => r.currentGuest).length / rooms.length) * 100) : 0,
   }
 
   const floors = [...new Set(rooms.map((room) => room.floor))].sort()

@@ -137,10 +137,29 @@ const getRoomTypeColor = (type: string) => {
   }
 }
 
+// Function to determine occupancy status based on currentGuest
+const getOccupancyStatus = (currentGuest: string | null) => {
+  return currentGuest ? "occupied" : "vacant"
+}
+
+// Function to get display status (combines occupancy + maintenance/cleaning)
+const getDisplayStatus = (currentGuest: string | null, maintenanceStatus: string) => {
+  const occupancyStatus = getOccupancyStatus(currentGuest)
+  
+  if (maintenanceStatus === "maintenance" || maintenanceStatus === "cleaning") {
+    return `${occupancyStatus} + ${maintenanceStatus}`
+  }
+  
+  return occupancyStatus
+}
+
 export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [deleting, setDeleting] = useState(false) // <-- Add state for delete loading
-  const StatusIcon = getStatusIcon(room.status)
+  const [deleting, setDeleting] = useState(false)
+  
+  const occupancyStatus = getOccupancyStatus(room.currentGuest)
+  const displayStatus = getDisplayStatus(room.currentGuest, room.status)
+  const StatusIcon = getStatusIcon(occupancyStatus)
 
   const timeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000)
@@ -158,7 +177,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
     try {
       await roomsApi.deleteRoom(room._id)
       toast.success("Room deleted!")
-      window.location.reload() // Or call a prop to refresh the list if available
+      window.location.reload()
     } catch (e: any) {
       toast.error(e.message || "Failed to delete room")
     } finally {
@@ -178,7 +197,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               </div>
               <div>
                 <h3 className="font-semibold">{room.roomName}</h3>
-                <p className="text-sm text-muted-foreground">Floor {room.floor} | {room.roomNumber}</p>
+                <p className="text-sm text-muted-foreground">Floor {room.floor} • Room {room.roomNumber}</p>
               </div>
             </div>
 
@@ -195,19 +214,18 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               </div>
             </div>
 
-            {/* Status */}
+            {/* Status Display */}
             <div className="col-span-2">
-              <Select value={room.status} onValueChange={(value) => onStatusChange(room._id, value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vacant">Vacant</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="cleaning">Cleaning</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-1">
+                <Badge className={cn("text-xs", getStatusColor(occupancyStatus))} variant="secondary">
+                  {occupancyStatus}
+                </Badge>
+                {room.status !== "vacant" && room.status !== "occupied" && (
+                  <Badge className={cn("text-xs", getStatusColor(room.status))} variant="outline">
+                    {room.status}
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Guest */}
@@ -228,7 +246,21 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
             </div>
 
             {/* Actions */}
-            <div className="col-span-2 flex justify-end">
+            <div className="col-span-2 flex justify-end gap-2">
+              <Select 
+                value={room.status === "vacant" || room.status === "occupied" ? "none" : room.status} 
+                onValueChange={(value) => onStatusChange(room._id, value)}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Set status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="cleaning">Cleaning</SelectItem>
+                </SelectContent>
+              </Select>
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -236,19 +268,6 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {/* <DropdownMenuItem>
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Room
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Manage
-                  </DropdownMenuItem> */}
-                  {/* <DropdownMenuSeparator /> */}
                   <DropdownMenuItem
                     className="text-red-600"
                     onClick={handleDeleteRoom}
@@ -276,7 +295,7 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               <Badge className={cn("text-xs", getRoomTypeColor(room.type))} variant="secondary">
                 {room.type}
               </Badge>
-              <span className="text-sm text-muted-foreground">Floor {room.floor} | {room.roomNumber}</span>
+              <span className="text-sm text-muted-foreground">Floor {room.floor} • Room {room.roomNumber}</span>
             </div>
           </div>
           <DropdownMenu>
@@ -286,19 +305,6 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {/* <DropdownMenuItem>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Room
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="h-4 w-4 mr-2" />
-                Manage
-              </DropdownMenuItem> */}
-              {/* <DropdownMenuSeparator /> */}
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={handleDeleteRoom}
@@ -317,7 +323,14 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StatusIcon className="h-4 w-4" />
-            <Badge className={cn("text-xs", getStatusColor(room.status))}>{room.status}</Badge>
+            <div className="flex flex-col gap-1">
+              <Badge className={cn("text-xs", getStatusColor(occupancyStatus))}>{occupancyStatus}</Badge>
+              {room.status !== "vacant" && room.status !== "occupied" && (
+                <Badge className={cn("text-xs", getStatusColor(room.status))} variant="outline">
+                  {room.status}
+                </Badge>
+              )}
+            </div>
           </div>
           {room.currentGuest && (
             <Avatar className="h-8 w-8">
@@ -385,19 +398,26 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0">
-        <Select value={room.status} onValueChange={(value) => onStatusChange(room._id, value)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="vacant">Vacant</SelectItem>
-            <SelectItem value="occupied">Occupied</SelectItem>
-            <SelectItem value="maintenance">Maintenance</SelectItem>
-            <SelectItem value="cleaning">Cleaning</SelectItem>
-          </SelectContent>
-        </Select>
-      </CardFooter>
+<CardFooter className="pt-0">
+  <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
+    <p className="m-0">Set maintenance:</p>
+    <div className="w-48">
+      <Select
+        value={room.status === "vacant" || room.status === "occupied" ? "none" : room.status}
+        onValueChange={(value) => onStatusChange(room._id, value)}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Set maintenance status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">None</SelectItem>
+          <SelectItem value="maintenance">Maintenance</SelectItem>
+          <SelectItem value="cleaning">Cleaning</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+</CardFooter>
     </Card>
   )
 }
