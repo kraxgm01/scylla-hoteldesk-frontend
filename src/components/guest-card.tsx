@@ -35,7 +35,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { roomsApi, guestsApi } from "@/lib/api";
 import { Room } from "@/types/room";
 import { toast } from "sonner"; // or your preferred toast lib
@@ -112,8 +119,8 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
     });
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (firstName: string) => {
+    return `${firstName.charAt(0)}`.toUpperCase();
   };
 
   const isCurrentlyStaying = () => {
@@ -128,11 +135,7 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
     setAssigning(true);
     try {
       const rooms = await roomsApi.getAllRooms();
-      setAvailableRooms(
-        rooms.filter(
-          (room) => room.status === "vacant"
-        )
-      );
+      setAvailableRooms(rooms.filter((room) => room.status === "vacant"));
     } catch {
       setAvailableRooms([]);
     }
@@ -162,7 +165,7 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
       toast.success("Guest deleted!");
       setShowDeleteModal(false);
       onUpdate(guest._id, { deleted: true });
-      window.location.reload(); 
+      window.location.reload();
     } catch (e: any) {
       toast.error(e.message || "Failed to delete guest");
     }
@@ -179,18 +182,19 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
                 <Avatar className="h-10 w-10">
                   <AvatarImage
                     src={`/placeholder.svg?height=40&width=40&text=${getInitials(
-                      guest.firstName,
-                      guest.lastName
+                      guest.firstName
                     )}`}
                   />
                   <AvatarFallback>
-                    {getInitials(guest.firstName, guest.lastName)}
+                    {getInitials(guest.firstName)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold">
-                    {guest.firstName} {guest.lastName}
-                  </h3>
+                  <h3 className="font-semibold">{guest.firstName}</h3>
+                  {/* Show total number of members (as string, initialized as lastName) */}
+                  <div className="text-xs text-white-600 font-semibold">
+                    Total Members: {guest.lastName}
+                  </div>
                   <p className="text-sm text-muted-foreground">{guest.email}</p>
                 </div>
               </div>
@@ -233,7 +237,9 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
                 </Badge>
                 <div className="flex items-center gap-1 text-sm mt-1">
                   <Star className={cn("h-4 w-4", loyaltyInfo.color)} />
-                  <span className={loyaltyInfo.color}>{guest.loyaltyPoints}</span>
+                  <span className={loyaltyInfo.color}>
+                    {guest.loyaltyPoints}
+                  </span>
                 </div>
               </div>
 
@@ -246,7 +252,7 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    {/* <DropdownMenuItem>
                       <Eye className="h-4 w-4 mr-2" />
                       View Details
                     </DropdownMenuItem>
@@ -258,8 +264,11 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
                       <Settings className="h-4 w-4 mr-2" />
                       Assign Room
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600" onClick={() => setShowDeleteModal(true)}>
+                    <DropdownMenuSeparator /> */}
+                    <DropdownMenuItem
+                      className="text-red-600"
+                      onClick={() => setShowDeleteModal(true)}
+                    >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
                     </DropdownMenuItem>
@@ -274,11 +283,15 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
             <DialogHeader>
               <DialogTitle>Delete Guest</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete this guest? This action cannot be undone.
+                Are you sure you want to delete this guest? This action cannot
+                be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteModal(false)}
+              >
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleDeleteGuest}>
@@ -300,18 +313,20 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
               <Avatar className="h-12 w-12">
                 <AvatarImage
                   src={`/placeholder.svg?height=48&width=48&text=${getInitials(
-                    guest.firstName,
-                    guest.lastName
+                    guest.firstName
                   )}`}
                 />
                 <AvatarFallback>
-                  {getInitials(guest.firstName, guest.lastName)}
+                  {getInitials(guest.firstName)}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="font-semibold text-lg">
-                  {guest.firstName} {guest.lastName}
+                  {guest.firstName}
                 </h3>
+                <div className="text-xs text-white-600 font-semibold">
+                  Total Members: {guest.lastName}
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge
                     className={
@@ -351,7 +366,10 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
                   Assign Room
                 </DropdownMenuItem> */}
                 {/* <DropdownMenuSeparator /> */}
-                <DropdownMenuItem className="text-red-600" onClick={() => setShowDeleteModal(true)}>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => setShowDeleteModal(true)}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Guest
                 </DropdownMenuItem>
@@ -422,7 +440,8 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
               {guest.preferences.doNotDisturb.enabled && (
                 <Badge variant="outline" className="text-xs flex items-center">
                   <BellOff className="h-3 w-3 mr-1" />
-                  DND: {guest.preferences.doNotDisturb.hours.start} - {guest.preferences.doNotDisturb.hours.end}
+                  DND: {guest.preferences.doNotDisturb.hours.start} -{" "}
+                  {guest.preferences.doNotDisturb.hours.end}
                 </Badge>
               )}
               {guest.preferences.specialRequests.length > 0 && (
@@ -496,7 +515,8 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
           <DialogHeader>
             <DialogTitle>Delete Guest</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this guest? This action cannot be undone.
+              Are you sure you want to delete this guest? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -110,7 +110,7 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
       roomsApi.getAllRooms()
         .then((rooms) => {
           // Only show rooms that are available
-          setAvailableRooms(rooms.filter((room) => room.status === "vacant" || room.status === "available"))
+          setAvailableRooms(rooms.filter((room) => room.status === "vacant"))
         })
         .catch(() => {
           setAvailableRooms([])
@@ -345,7 +345,7 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">
-                  First Name <span className="text-red-500">*</span>
+                  Full Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="firstName"
@@ -358,11 +358,11 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
 
               <div className="space-y-2">
                 <Label htmlFor="lastName">
-                  Last Name <span className="text-red-500">*</span>
+                  Total Members <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="lastName"
-                  placeholder="Doe"
+                  placeholder="2"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange("lastName", e.target.value)}
                   disabled={isLoading}
@@ -449,7 +449,7 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                 <Label htmlFor="room">Assign Room</Label>
                 <select
                   id="room"
-                  className="w-full border rounded px-2 py-2"
+                  className="w-full border rounded px-2 py-2 bg-[#171717] text-white"
                   value={formData.room}
                   onChange={(e) => handleInputChange("room", e.target.value)}
                   disabled={isLoading}

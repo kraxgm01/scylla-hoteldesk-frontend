@@ -137,29 +137,23 @@ const getRoomTypeColor = (type: string) => {
   }
 }
 
-// Function to determine occupancy status based on currentGuest
-const getOccupancyStatus = (currentGuest: string | null) => {
+// Function to determine base occupancy status
+const getBaseOccupancyStatus = (currentGuest: string | null) => {
   return currentGuest ? "occupied" : "vacant"
 }
 
-// Function to get display status (combines occupancy + maintenance/cleaning)
-const getDisplayStatus = (currentGuest: string | null, maintenanceStatus: string) => {
-  const occupancyStatus = getOccupancyStatus(currentGuest)
-  
-  if (maintenanceStatus === "maintenance" || maintenanceStatus === "cleaning") {
-    return `${occupancyStatus} + ${maintenanceStatus}`
-  }
-  
-  return occupancyStatus
+// Function to check if status is a maintenance type
+const isMaintenanceStatus = (status: string) => {
+  return status === "maintenance" || status === "cleaning"
 }
 
 export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [deleting, setDeleting] = useState(false)
   
-  const occupancyStatus = getOccupancyStatus(room.currentGuest)
-  const displayStatus = getDisplayStatus(room.currentGuest, room.status)
-  const StatusIcon = getStatusIcon(occupancyStatus)
+  const baseStatus = getBaseOccupancyStatus(room.currentGuest)
+  const isInMaintenance = isMaintenanceStatus(room.status)
+  const StatusIcon = getStatusIcon(baseStatus)
 
   const timeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000)
@@ -183,6 +177,20 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
     } finally {
       setDeleting(false)
     }
+  }
+
+  const handleStatusChange = (value: string) => {
+    let newStatus: string
+
+    if (value === "none") {
+      // Reset to base occupancy status
+      newStatus = baseStatus
+    } else {
+      // Set to maintenance/cleaning status
+      newStatus = value
+    }
+
+    onStatusChange(room._id, newStatus)
   }
 
   if (viewMode === "list") {
@@ -217,10 +225,10 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
             {/* Status Display */}
             <div className="col-span-2">
               <div className="flex flex-col gap-1">
-                <Badge className={cn("text-xs", getStatusColor(occupancyStatus))} variant="secondary">
-                  {occupancyStatus}
+                <Badge className={cn("text-xs", getStatusColor(baseStatus))} variant="secondary">
+                  {baseStatus}
                 </Badge>
-                {room.status !== "vacant" && room.status !== "occupied" && (
+                {isInMaintenance && (
                   <Badge className={cn("text-xs", getStatusColor(room.status))} variant="outline">
                     {room.status}
                   </Badge>
@@ -248,8 +256,8 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
             {/* Actions */}
             <div className="col-span-2 flex justify-end gap-2">
               <Select 
-                value={room.status === "vacant" || room.status === "occupied" ? "none" : room.status} 
-                onValueChange={(value) => onStatusChange(room._id, value)}
+                value={isInMaintenance ? room.status : "none"} 
+                onValueChange={handleStatusChange}
               >
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Set status" />
@@ -324,8 +332,8 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
           <div className="flex items-center gap-2">
             <StatusIcon className="h-4 w-4" />
             <div className="flex flex-col gap-1">
-              <Badge className={cn("text-xs", getStatusColor(occupancyStatus))}>{occupancyStatus}</Badge>
-              {room.status !== "vacant" && room.status !== "occupied" && (
+              <Badge className={cn("text-xs", getStatusColor(baseStatus))}>{baseStatus}</Badge>
+              {isInMaintenance && (
                 <Badge className={cn("text-xs", getStatusColor(room.status))} variant="outline">
                   {room.status}
                 </Badge>
@@ -398,26 +406,26 @@ export function RoomCard({ room, viewMode, onStatusChange }: RoomCardProps) {
         </div>
       </CardContent>
 
-<CardFooter className="pt-0">
-  <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-    <p className="m-0">Set maintenance:</p>
-    <div className="w-48">
-      <Select
-        value={room.status === "vacant" || room.status === "occupied" ? "none" : room.status}
-        onValueChange={(value) => onStatusChange(room._id, value)}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Set maintenance status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">None</SelectItem>
-          <SelectItem value="maintenance">Maintenance</SelectItem>
-          <SelectItem value="cleaning">Cleaning</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  </div>
-</CardFooter>
+      <CardFooter className="pt-0">
+        <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
+          <p className="m-0">Set maintenance:</p>
+          <div className="w-48">
+            <Select
+              value={isInMaintenance ? room.status : "none"}
+              onValueChange={handleStatusChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Set maintenance status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="cleaning">Cleaning</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   )
 }
