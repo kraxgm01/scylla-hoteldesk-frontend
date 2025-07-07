@@ -388,7 +388,7 @@ export function RequestCard({
                     label="Room"
                     value={request.roomNumber}
                   />
-                  <DetailRow
+                  {/* <DetailRow
                     icon={UserCheck}
                     label="Assigned To"
                     value={request.assignedTo?.name || "Unassigned"}
@@ -401,7 +401,7 @@ export function RequestCard({
                         {formatEstimatedTime(request.estimatedCompletionTime)}
                       </span>
                     }
-                  />
+                  /> */}
                 </div>
               </div>
 
@@ -501,7 +501,7 @@ export function RequestCard({
           
           <CardFooter className="bg-muted/50 p-3 flex justify-between">
             <div className="flex gap-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onCall(request._id)}
@@ -518,7 +518,7 @@ export function RequestCard({
                   <UserCheck className="h-4 w-4 mr-2" />
                   Assign Staff
                 </Button>
-              )}
+              )} */}
             </div>
             <div className="flex gap-2">
               <Button
@@ -541,7 +541,7 @@ export function RequestCard({
                   size="sm" 
                   onClick={() => onUpdateStatus(request._id, "in-progress")}
                 >
-                  Start Work
+                  Assigned
                 </Button>
               )}
               {request.status === "in-progress" && (

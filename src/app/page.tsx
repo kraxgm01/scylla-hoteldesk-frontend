@@ -14,6 +14,7 @@ import { HotelRequest } from "@/types/request"
 
 export default function Dashboard() {
   const [filter, setFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
   
   // Configure the hook with auto-polling (always enabled)
   const { 
@@ -65,19 +66,38 @@ export default function Dashboard() {
   const handleRefresh = async () => {
     try {
       await refetch()
-      toast.success("Refreshed", {
-        description: "Requests have been updated.",
+      toast.error("All requests fetched.", {
+        description: "Refresh done successfully!",
       })
     } catch (error) {
       toast.error("Error", {
-        description: "Failed to refresh requests.",
+        description: "Failed to refresh requests. Please try again.",
       })
     }
   }
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+  }
+
   const filteredRequests = requests.filter((req) => {
-    if (filter === "all") return true
-    return req.status === filter
+    // Apply status filter
+    if (filter !== "all" && req.status !== filter) return false
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      return (
+        req.roomNumber?.toString().includes(query) ||
+        req.type?.toLowerCase().includes(query) ||
+        req.description?.toLowerCase().includes(query) ||
+        req.guestName?.toLowerCase().includes(query) ||
+        req.assignedTo?.toLowerCase().includes(query) ||
+        req.status?.toLowerCase().includes(query)
+      )
+    }
+    
+    return true
   })
 
   const stats = {
@@ -93,7 +113,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex flex-col min-h-screen">
-        <DashboardHeader />
+        <DashboardHeader onSearch={handleSearch} />
         <div className="flex-1 flex items-center justify-center p-6">
           <Card className="w-full max-w-md">
             <CardContent className="p-6 text-center">
@@ -113,11 +133,11 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <DashboardHeader />
+      <DashboardHeader onSearch={handleSearch} />
 
       <div className="flex-1 space-y-6 p-6">
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
@@ -152,17 +172,6 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">In progress</p>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Badge variant="outline">{stats.completedRequests}</Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.completedRequests}</div>
-              <p className="text-xs text-muted-foreground">Today</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Requests Section */}
@@ -173,6 +182,11 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold tracking-tight">Recent Requests</h2>
                 <p className="text-muted-foreground">
                   Manage guest requests and service orders
+                  {searchQuery && (
+                    <span className="ml-2 text-sm">
+                      • Showing {filteredRequests.length} results for "{searchQuery}"
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -194,15 +208,15 @@ export default function Dashboard() {
                     <SelectItem value="all">All Requests</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="assigned">Assigned</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
+                    {/* <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>  */}
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button>
+                {/* <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   New Request
-                </Button>
+                </Button> */}
               </div>
             </div>
           </div>
@@ -230,10 +244,19 @@ export default function Dashboard() {
               ))}
               {filteredRequests.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  No requests found for the selected filter.
+                  {searchQuery ? (
+                    <div>
+                      <p className="mb-2">No requests found for "{searchQuery}"</p>
+                      <Button variant="outline" onClick={() => setSearchQuery("")}>
+                        Clear Search
+                      </Button>
+                    </div>
+                  ) : (
+                    "No requests found for the selected filter."
+                  )}
                 </div>
-                )}
-              </div>
+              )}
+            </div>
           )}
         </div>
       </div>
