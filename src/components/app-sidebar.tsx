@@ -41,16 +41,16 @@ const menuItems = [
     url: "/guests",
     icon: Users,
   },
-  {
-    title: "Calendar",
-    url: "/calendar",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Calendar",
+  //   url: "/calendar",
+  //   icon: Calendar,
+  // },
+  // {
+  //   title: "Settings",
+  //   url: "/settings",
+  //   icon: Settings,
+  // },
 ]
 
 const quickActions = [
@@ -64,11 +64,11 @@ const quickActions = [
     icon: UserPlus,
     action: "add-guest",
   },
-  {
-    title: "New Booking",
-    icon: Building,
-    action: "new-booking",
-  },
+  // {
+  //   title: "New Booking",
+  //   icon: Building,
+  //   action: "new-booking",
+  // },
 ]
 
 export function AppSidebar() {
@@ -96,7 +96,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
           <Building className="h-6 w-6" />
-          <span className="font-semibold text-lg">Hotel Dashboard</span>
+          <span className="font-semibold text-lg">Scylla Dashboard</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -135,11 +135,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="p-2">
+        {/* <div className="p-2">
           <Button variant="outline" className="w-full bg-transparent">
             Sign Out
           </Button>
-        </div>
+        </div> */}
       </SidebarFooter>
       <AddRoomDialog open={isAddRoomOpen} onOpenChange={setIsAddRoomOpen} />
       <AddGuestDialog open={isAddGuestOpen} onOpenChange={setIsAddGuestOpen} />

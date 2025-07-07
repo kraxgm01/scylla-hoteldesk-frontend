@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/sonner"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Hotel Front Desk Dashboard",
+  title: "Scylla Dashboard",
   description: "Manage hotel requests, rooms, and guests",
 }
 

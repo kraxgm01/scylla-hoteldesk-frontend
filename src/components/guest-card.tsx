@@ -475,7 +475,7 @@ export function GuestCard({ guest, viewMode, onUpdate }: GuestCardProps) {
               ) : (
                 <div className="flex flex-col gap-2 w-full">
                   <select
-                    className="border rounded px-2 py-1 w-full text-sm"
+                    className="border rounded px-2 py-1 w-full text-sm bg-[#171717] text-white"
                     value={selectedRoom}
                     onChange={(e) => setSelectedRoom(e.target.value)}
                   >
