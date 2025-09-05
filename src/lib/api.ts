@@ -1,6 +1,7 @@
 import { HotelRequest, ApiResponse, RequestsResponse } from '@/types/request';
 import { Room, CreateRoomData } from '@/types/room';
 import { Guest, CreateGuestData, AssignRoomData } from '@/types/guests';
+import { Booking, BookingResponse, BookingsResponse } from '@/types/booking';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
 
@@ -201,6 +202,20 @@ export const guestsApi = {
       method: 'POST',
       body: JSON.stringify(assignRoomData),
     });
+  },
+}
+
+export const bookingsApi = {
+  // List booking history
+  getAll: async (): Promise<Booking[]> => {
+    const response = await fetchApi<BookingsResponse>('/bookings')
+    return response.data
+  },
+
+  // Get booking details by id
+  getById: async (id: string): Promise<Booking> => {
+    const response = await fetchApi<BookingResponse>(`/bookings/${id}`)
+    return response.data
   },
 }
 
