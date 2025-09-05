@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,60 +9,62 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Plus, X, User, Calendar, Settings, Loader2 } from "lucide-react"
-import { toast } from "sonner"
-import { guestsApi, roomsApi } from "@/lib/api"
-import { Guest, CreateGuestData, Room } from "@/types/guests"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Plus, X, User, Calendar, Settings, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { guestsApi, roomsApi } from "@/lib/api";
+import { Guest, CreateGuestData } from "@/types/guests";
+import type { Room } from "@/types/room";
 
 interface AddGuestDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onGuestCreated: (guest: Guest) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onGuestCreated: (guest: Guest) => void;
 }
 
 interface GuestFormData {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  room: string
-  checkInDate: string
-  checkOutDate: string
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  room: string;
+  checkInDate: string;
+  checkOutDate: string;
   preferences: {
-    pillowType: "soft" | "firm" | "hypoallergenic"
-    dietaryRestrictions: string[]
-    specialRequests: string[]
+    pillowType: "soft" | "firm" | "hypoallergenic";
+    dietaryRestrictions: string[];
+    specialRequests: string[];
     doNotDisturb: {
-      enabled: boolean
+      enabled: boolean;
       hours: {
-        start: string
-        end: string
-      }
-    }
-  }
-  loyaltyPoints: number
+        start: string;
+        end: string;
+      };
+    };
+  };
+  loyaltyPoints: number;
 }
 
-// You'll need to create a rooms API endpoint or fetch available rooms
-const mockAvailableRooms: Room[] = [
-  { _id: "68626dec8a5d0ae3b03f3c05", roomNumber: "205", roomName: "Standard Room 205", type: "standard", status: "available" },
-  { _id: "68626dec8a5d0ae3b03f3c08", roomNumber: "220", roomName: "Deluxe Room 220", type: "deluxe", status: "available" },
-  { _id: "68626dec8a5d0ae3b03f3c10", roomNumber: "301", roomName: "Suite 301", type: "suite", status: "available" },
-]
+// mockAvailableRooms removed; rooms are fetched from backend
 
 const pillowTypes = [
   { value: "soft", label: "Soft" },
   { value: "firm", label: "Firm" },
   { value: "hypoallergenic", label: "Hypoallergenic" },
-]
+];
 
 const commonDietaryRestrictions = [
   "Vegetarian",
@@ -73,7 +75,7 @@ const commonDietaryRestrictions = [
   "Shellfish allergy",
   "Kosher",
   "Halal",
-]
+];
 
 const commonSpecialRequests = [
   "Late checkout",
@@ -85,38 +87,43 @@ const commonSpecialRequests = [
   "Low floor",
   "Near elevator",
   "Away from elevator",
-]
+];
 
-export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [newDietaryRestriction, setNewDietaryRestriction] = useState("")
-  const [newSpecialRequest, setNewSpecialRequest] = useState("")
-  const [availableRooms, setAvailableRooms] = useState<Room[]>([])
+export function AddGuestDialog({
+  open,
+  onOpenChange,
+  onGuestCreated,
+}: AddGuestDialogProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [newDietaryRestriction, setNewDietaryRestriction] = useState("");
+  const [newSpecialRequest, setNewSpecialRequest] = useState("");
+  const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
 
   // Fetch available rooms from backend when dialog opens
   useEffect(() => {
     if (open) {
       // Set default dates
-      const today = new Date()
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
       setFormData((prev) => ({
         ...prev,
         checkInDate: today.toISOString().split("T")[0],
         checkOutDate: tomorrow.toISOString().split("T")[0],
-      }))
+      }));
 
       // Fetch available rooms
-      roomsApi.getAllRooms()
+      roomsApi
+        .getAllRooms()
         .then((rooms) => {
           // Only show rooms that are available
-          setAvailableRooms(rooms.filter((room) => room.status === "vacant"))
+          setAvailableRooms(rooms.filter((room) => room.status === "vacant"));
         })
         .catch(() => {
-          setAvailableRooms([])
-        })
+          setAvailableRooms([]);
+        });
     }
-  }, [open])
+  }, [open]);
 
   const [formData, setFormData] = useState<GuestFormData>({
     firstName: "",
@@ -139,64 +146,72 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
       },
     },
     loyaltyPoints: 0,
-  })
+  });
 
   // Set default dates when dialog opens
   useEffect(() => {
     if (open) {
-      const today = new Date()
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
       setFormData((prev) => ({
         ...prev,
         checkInDate: today.toISOString().split("T")[0],
         checkOutDate: tomorrow.toISOString().split("T")[0],
-      }))
+      }));
     }
-  }, [open])
+  }, [open]);
 
   const handleInputChange = (field: string, value: any) => {
     if (field.includes(".")) {
-      const keys = field.split(".")
+      const keys = field.split(".");
       setFormData((prev) => {
-        const newData = { ...prev }
-        let current: any = newData
+        const newData = { ...prev };
+        let current: any = newData;
         for (let i = 0; i < keys.length - 1; i++) {
-          current = current[keys[i]]
+          current = current[keys[i]];
         }
-        current[keys[keys.length - 1]] = value
-        return newData
-      })
+        current[keys[keys.length - 1]] = value;
+        return newData;
+      });
     } else {
       setFormData((prev) => ({
         ...prev,
         [field]: value,
-      }))
+      }));
     }
-  }
+  };
 
   const addDietaryRestriction = (restriction: string) => {
-    if (restriction && !formData.preferences.dietaryRestrictions.includes(restriction)) {
+    if (
+      restriction &&
+      !formData.preferences.dietaryRestrictions.includes(restriction)
+    ) {
       setFormData((prev) => ({
         ...prev,
         preferences: {
           ...prev.preferences,
-          dietaryRestrictions: [...prev.preferences.dietaryRestrictions, restriction],
+          dietaryRestrictions: [
+            ...prev.preferences.dietaryRestrictions,
+            restriction,
+          ],
         },
-      }))
+      }));
     }
-  }
+  };
 
   const removeDietaryRestriction = (restriction: string) => {
     setFormData((prev) => ({
       ...prev,
       preferences: {
         ...prev.preferences,
-        dietaryRestrictions: prev.preferences.dietaryRestrictions.filter((r) => r !== restriction),
+        dietaryRestrictions: prev.preferences.dietaryRestrictions.filter(
+          (r) => r !== restriction
+        ),
       },
-    }))
-  }
+    }));
+  };
 
   const addSpecialRequest = (request: string) => {
     if (request && !formData.preferences.specialRequests.includes(request)) {
@@ -206,33 +221,35 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
           ...prev.preferences,
           specialRequests: [...prev.preferences.specialRequests, request],
         },
-      }))
+      }));
     }
-  }
+  };
 
   const removeSpecialRequest = (request: string) => {
     setFormData((prev) => ({
       ...prev,
       preferences: {
         ...prev.preferences,
-        specialRequests: prev.preferences.specialRequests.filter((r) => r !== request),
+        specialRequests: prev.preferences.specialRequests.filter(
+          (r) => r !== request
+        ),
       },
-    }))
-  }
+    }));
+  };
 
   const handleAddCustomDietaryRestriction = () => {
     if (newDietaryRestriction.trim()) {
-      addDietaryRestriction(newDietaryRestriction.trim())
-      setNewDietaryRestriction("")
+      addDietaryRestriction(newDietaryRestriction.trim());
+      setNewDietaryRestriction("");
     }
-  }
+  };
 
   const handleAddCustomSpecialRequest = () => {
     if (newSpecialRequest.trim()) {
-      addSpecialRequest(newSpecialRequest.trim())
-      setNewSpecialRequest("")
+      addSpecialRequest(newSpecialRequest.trim());
+      setNewSpecialRequest("");
     }
-  }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -256,38 +273,43 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
         },
       },
       loyaltyPoints: 0,
-    })
-    setNewDietaryRestriction("")
-    setNewSpecialRequest("")
-  }
+    });
+    setNewDietaryRestriction("");
+    setNewSpecialRequest("");
+  };
 
   const handleSubmit = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       // Basic validation
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.email ||
+        !formData.phone
+      ) {
         toast("Validation Error", {
           description: "Please fill in all required fields.",
-        })
-        return
+        });
+        return;
       }
 
       if (!formData.checkInDate || !formData.checkOutDate) {
         toast("Validation Error", {
           description: "Please select check-in and check-out dates.",
-        })
-        return
+        });
+        return;
       }
 
       // Validate dates
-      const checkIn = new Date(formData.checkInDate)
-      const checkOut = new Date(formData.checkOutDate)
+      const checkIn = new Date(formData.checkInDate);
+      const checkOut = new Date(formData.checkOutDate);
       if (checkOut <= checkIn) {
         toast("Validation Error", {
           description: "Check-out date must be after check-in date.",
-        })
-        return
+        });
+        return;
       }
 
       // Prepare data for API
@@ -300,37 +322,42 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
         checkOutDate: new Date(formData.checkOutDate).toISOString(),
         preferences: formData.preferences,
         loyaltyPoints: formData.loyaltyPoints,
-      }
+      };
 
       // Add room if selected
       if (formData.room && formData.room !== "none") {
-        guestData.room = formData.room
+        guestData.room = formData.room;
       }
 
       // Create guest via API
-      const response = await guestsApi.createGuest(guestData)
+      const response = await guestsApi.createGuest(guestData);
 
       // Notify parent component
-      onGuestCreated(response.data)
+      onGuestCreated(response.data);
 
-      resetForm()
-      onOpenChange(false)
+      resetForm();
+      onOpenChange(false);
     } catch (error) {
-      console.error("Error creating guest:", error)
+      console.error("Error creating guest:", error);
       toast("Error", {
-        description: error instanceof Error ? error.message : "Failed to create guest. Please try again.",
-      })
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create guest. Please try again.",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Guest</DialogTitle>
-          <DialogDescription>Create a new guest profile and optionally assign a room.</DialogDescription>
+          <DialogDescription>
+            Create a new guest profile and optionally assign a room.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
@@ -351,7 +378,9 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                   id="firstName"
                   placeholder="John"
                   value={formData.firstName}
-                  onChange={(e) => handleInputChange("firstName", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("firstName", e.target.value)
+                  }
                   disabled={isLoading}
                 />
               </div>
@@ -364,7 +393,9 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                   id="lastName"
                   placeholder="2"
                   value={formData.lastName}
-                  onChange={(e) => handleInputChange("lastName", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("lastName", e.target.value)
+                  }
                   disabled={isLoading}
                 />
               </div>
@@ -403,7 +434,12 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                   type="number"
                   min="0"
                   value={formData.loyaltyPoints}
-                  onChange={(e) => handleInputChange("loyaltyPoints", Number.parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "loyaltyPoints",
+                      Number.parseInt(e.target.value) || 0
+                    )
+                  }
                   disabled={isLoading}
                 />
               </div>
@@ -427,7 +463,9 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                   id="checkInDate"
                   type="date"
                   value={formData.checkInDate}
-                  onChange={(e) => handleInputChange("checkInDate", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("checkInDate", e.target.value)
+                  }
                   disabled={isLoading}
                 />
               </div>
@@ -440,7 +478,9 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                   id="checkOutDate"
                   type="date"
                   value={formData.checkOutDate}
-                  onChange={(e) => handleInputChange("checkOutDate", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("checkOutDate", e.target.value)
+                  }
                   disabled={isLoading}
                 />
               </div>
@@ -479,7 +519,9 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                 <Select
                   id="pillowType"
                   value={formData.preferences.pillowType}
-                  onValueChange={(value) => handleInputChange("preferences.pillowType", value)}
+                  onValueChange={(value) =>
+                    handleInputChange("preferences.pillowType", value)
+                  }
                   disabled={isLoading}
                 >
                   <SelectTrigger>
@@ -498,16 +540,18 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
               <div className="space-y-2">
                 <Label>Dietary Restrictions</Label>
                 <div className="flex flex-wrap gap-2">
-                  {formData.preferences.dietaryRestrictions.map((restriction) => (
-                    <Badge
-                      key={restriction}
-                      variant="outline"
-                      className="cursor-pointer"
-                      onClick={() => removeDietaryRestriction(restriction)}
-                    >
-                      {restriction} <X className="h-4 w-4 ml-1" />
-                    </Badge>
-                  ))}
+                  {formData.preferences.dietaryRestrictions.map(
+                    (restriction) => (
+                      <Badge
+                        key={restriction}
+                        variant="outline"
+                        className="cursor-pointer"
+                        onClick={() => removeDietaryRestriction(restriction)}
+                      >
+                        {restriction} <X className="h-4 w-4 ml-1" />
+                      </Badge>
+                    )
+                  )}
 
                   <div className="flex gap-2">
                     <Input
@@ -567,7 +611,12 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                 <Label>Do Not Disturb</Label>
                 <Checkbox
                   checked={formData.preferences.doNotDisturb.enabled}
-                  onCheckedChange={(checked) => handleInputChange("preferences.doNotDisturb.enabled", checked)}
+                  onCheckedChange={(checked) =>
+                    handleInputChange(
+                      "preferences.doNotDisturb.enabled",
+                      checked
+                    )
+                  }
                   disabled={isLoading}
                 >
                   Enable
@@ -581,7 +630,12 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                         id="dndStartTime"
                         type="time"
                         value={formData.preferences.doNotDisturb.hours.start}
-                        onChange={(e) => handleInputChange("preferences.doNotDisturb.hours.start", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "preferences.doNotDisturb.hours.start",
+                            e.target.value
+                          )
+                        }
                         disabled={isLoading}
                       />
                     </div>
@@ -592,7 +646,12 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
                         id="dndEndTime"
                         type="time"
                         value={formData.preferences.doNotDisturb.hours.end}
-                        onChange={(e) => handleInputChange("preferences.doNotDisturb.hours.end", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "preferences.doNotDisturb.hours.end",
+                            e.target.value
+                          )
+                        }
                         disabled={isLoading}
                       />
                     </div>
@@ -607,8 +666,8 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
           <Button
             variant="outline"
             onClick={() => {
-              resetForm()
-              onOpenChange(false)
+              resetForm();
+              onOpenChange(false);
             }}
             disabled={isLoading}
           >
@@ -625,5 +684,5 @@ export function AddGuestDialog({ open, onOpenChange, onGuestCreated }: AddGuestD
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

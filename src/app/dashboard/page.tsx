@@ -221,7 +221,7 @@ export default function DashboardPage() {
               {filteredRequests.map((request) => (
                 <RequestCard
                   key={request._id}
-                  request={request}
+                  request={request as any}
                   onApprove={handleApprove}
                   onDecline={handleDecline}
                 />

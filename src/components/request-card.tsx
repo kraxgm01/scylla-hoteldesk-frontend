@@ -97,12 +97,12 @@ interface HotelRequest {
 }
 
 interface RequestCardProps {
-  request: HotelRequest;
+  request: any;
   onApprove: (id: string) => void;
   onDecline: (id: string) => void;
-  onAssign: (id: string) => void;
-  onCall: (id: string) => void;
-  onUpdateStatus: (id: string, status: string) => void;
+  onAssign?: (id: string) => void;
+  onCall?: (id: string) => void;
+  onUpdateStatus?: (id: string, status: string) => void;
 }
 
 // Enhanced helper functions
