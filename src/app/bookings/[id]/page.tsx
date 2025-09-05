@@ -14,7 +14,6 @@ import {
   User,
   Users,
   Hash,
-  DollarSign,
   Tag,
   CheckCircle2,
   AlertCircle,
