@@ -73,12 +73,23 @@ export default function DashboardPage() {
     if (filter !== "all" && req.status !== filter) return false;
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
+      const matchesRoom = req.roomNumber?.toString().includes(query);
+      const matchesType = req.type?.toLowerCase().includes(query);
+      const matchesAssigned = req.assignedTo?.toLowerCase().includes(query);
+      const matchesStatus = req.status?.toLowerCase().includes(query);
+      const matchesMessage = req.details?.message
+        ?.toLowerCase()
+        .includes(query);
+      const matchesItemNotes = req.details?.items?.some((item) =>
+        (item.notes || item.name)?.toString().toLowerCase().includes(query)
+      );
       return (
-        req.roomNumber?.toString().includes(query) ||
-        req.type?.toLowerCase().includes(query) ||
-        req.details?.notes?.toLowerCase().includes(query) ||
-        req.assignedTo?.toLowerCase().includes(query) ||
-        req.status?.toLowerCase().includes(query)
+        matchesRoom ||
+        matchesType ||
+        matchesAssigned ||
+        matchesStatus ||
+        matchesMessage ||
+        Boolean(matchesItemNotes)
       );
     }
     return true;
