@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   CalendarDays,
   User,
+  Users,
   Hash,
   DollarSign,
   Tag,
@@ -29,6 +30,39 @@ function formatDate(dateString?: string) {
   } catch {
     return dateString;
   }
+}
+
+function extractRoomInfo(summary?: string): {
+  roomType?: string;
+  roomNumber?: string;
+  areaId?: string;
+} {
+  if (!summary) return {};
+  const lines = summary.split(/\r?\n/);
+  let roomType: string | undefined;
+  let roomNumber: string | undefined;
+  let areaId: string | undefined;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!roomType) {
+      const m = line.match(/room\s*type\s*:\s*(.+)/i);
+      if (m && m[1]) {
+        roomType = m[1].trim();
+      }
+    }
+    if (!roomNumber) {
+      const n =
+        line.match(/area\s*id\s*:?\s*(\d+)/i) ||
+        line.match(/areaid\s*:?\s*(\d+)/i);
+      if (n && n[1]) {
+        areaId = n[1].trim();
+        roomNumber = areaId;
+      }
+    }
+    if (roomType && roomNumber) break;
+  }
+  return { roomType, roomNumber, areaId };
 }
 
 export default function BookingDetailsPage() {
@@ -174,24 +208,48 @@ export default function BookingDetailsPage() {
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-4">
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Room #</div>
+                <div className="text-sm">
+                  {(() => {
+                    const inferred = extractRoomInfo(
+                      (booking as any).bookingSummary
+                    );
+                    const roomId = (booking as any).areaId || inferred.areaId;
+                    return roomId || "-";
+                  })()}
+                </div>
+              </div>
               <div>
                 <div className="text-sm text-muted-foreground mb-1">
                   Room / Type
                 </div>
                 <div className="text-sm">
-                  {(booking as any).roomNumber ||
-                    (booking as any).roomType ||
-                    "-"}
+                  {(() => {
+                    const inferred = extractRoomInfo(
+                      (booking as any).bookingSummary
+                    );
+                    const roomNumber =
+                      (booking as any).roomNumber ||
+                      inferred.roomNumber ||
+                      (booking as any).areaId ||
+                      inferred.areaId;
+                    const roomType =
+                      (booking as any).roomType || inferred.roomType;
+                    const text =
+                      [roomNumber, roomType].filter(Boolean).join(" / ") || "-";
+                    return text;
+                  })()}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground mb-1">Price</div>
                 <div className="text-sm">
                   {typeof booking.roomPrice === "number"
-                    ? booking.roomPrice.toLocaleString(undefined, {
+                    ? booking.roomPrice.toLocaleString("en-IN", {
                         style: "currency",
-                        currency: "USD",
+                        currency: "INR",
                       })
                     : "-"}
                 </div>

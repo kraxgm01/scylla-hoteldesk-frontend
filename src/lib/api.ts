@@ -3,7 +3,7 @@ import { Room, CreateRoomData } from '@/types/room';
 import { Guest, CreateGuestData, AssignRoomData } from '@/types/guests';
 import { Booking, BookingResponse, BookingsResponse } from '@/types/booking';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://scylla-backend-production.up.railway.app/api';
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {

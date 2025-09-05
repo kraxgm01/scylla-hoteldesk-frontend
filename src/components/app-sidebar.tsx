@@ -1,7 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Calendar, Home, Users, Bed, ClipboardList, Settings, Plus, UserPlus, Building } from "lucide-react"
+import { useState } from "react";
+import {
+  Calendar,
+  Home,
+  Users,
+  Bed,
+  ClipboardList,
+  Settings,
+  Plus,
+  UserPlus,
+  Building,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -14,16 +24,16 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
-} from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { AddRoomDialog } from "@/components/add-room-dialog"
-import { AddGuestDialog } from "@/components/add-guest-dialog"
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { AddRoomDialog } from "@/components/add-room-dialog";
+import { AddGuestDialog } from "@/components/add-guest-dialog";
 
 const menuItems = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   // {
@@ -35,6 +45,11 @@ const menuItems = [
     title: "Rooms",
     url: "/rooms",
     icon: Bed,
+  },
+  {
+    title: "Bookings",
+    url: "/bookings",
+    icon: Calendar,
   },
   {
     title: "Guests",
@@ -51,7 +66,7 @@ const menuItems = [
   //   url: "/settings",
   //   icon: Settings,
   // },
-]
+];
 
 const quickActions = [
   {
@@ -69,27 +84,27 @@ const quickActions = [
   //   icon: Building,
   //   action: "new-booking",
   // },
-]
+];
 
 export function AppSidebar() {
-  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false)
-  const [isAddGuestOpen, setIsAddGuestOpen] = useState(false)
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+  const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
 
   const handleQuickAction = (action: string) => {
     switch (action) {
       case "add-room":
-        setIsAddRoomOpen(true)
-        break
+        setIsAddRoomOpen(true);
+        break;
       case "add-guest":
-        setIsAddGuestOpen(true)
-        break
+        setIsAddGuestOpen(true);
+        break;
       case "new-booking":
         // Handle new booking action
-        break
+        break;
       default:
-        break
+        break;
     }
-  }
+  };
 
   return (
     <Sidebar>
@@ -124,7 +139,9 @@ export function AppSidebar() {
             <SidebarMenu>
               {quickActions.map((action) => (
                 <SidebarMenuItem key={action.title}>
-                  <SidebarMenuButton onClick={() => handleQuickAction(action.action)}>
+                  <SidebarMenuButton
+                    onClick={() => handleQuickAction(action.action)}
+                  >
                     <action.icon />
                     <span>{action.title}</span>
                   </SidebarMenuButton>
@@ -144,5 +161,5 @@ export function AppSidebar() {
       <AddRoomDialog open={isAddRoomOpen} onOpenChange={setIsAddRoomOpen} />
       <AddGuestDialog open={isAddGuestOpen} onOpenChange={setIsAddGuestOpen} />
     </Sidebar>
-  )
+  );
 }
