@@ -20,6 +20,7 @@ export type Booking = {
   updatedAt: string;
   // Optional UI helpers
   bookingSummary?: string;
+  paymentId?: string;
 };
 
 export type BookingsResponse = {
