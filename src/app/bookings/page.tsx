@@ -138,6 +138,7 @@ export default function BookingsPage() {
                   <TableHead>Check-out</TableHead>
                   <TableHead>Guests</TableHead>
                   <TableHead>Room ID</TableHead>
+                  <TableHead>Reservation ID</TableHead>
                   <TableHead>Room / Type</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Payment</TableHead>
@@ -148,7 +149,7 @@ export default function BookingsPage() {
                 {error && bookings.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="text-center text-muted-foreground py-10"
                     >
                       {error}
@@ -157,94 +158,117 @@ export default function BookingsPage() {
                 ) : sorted.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="text-center text-muted-foreground py-10"
                     >
                       No bookings yet
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sorted.map((b) => (
-                    <TableRow
-                      key={b._id}
-                      className="cursor-pointer"
-                      onClick={() => router.push(`/bookings/${b._id}`)}
-                    >
-                      <TableCell className="font-medium">
-                        {b.customerName || "-"}
-                      </TableCell>
-                      <TableCell>{formatDate(b.checkIn)}</TableCell>
-                      <TableCell>{formatDate(b.checkOut)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4" />
-                          <span>
-                            {`${(b as any).adults ?? 0}`}
-                            {((b as any).children_0_5 ?? 0) +
-                              ((b as any).children_6_12 ?? 0) >
-                            0
-                              ? ` + ${
-                                  ((b as any).children_0_5 ?? 0) +
-                                  ((b as any).children_6_12 ?? 0)
-                                } kids`
-                              : ""}
+                  sorted.map((b) => {
+                    const inferred = extractRoomInfo((b as any).bookingSummary);
+                    const roomId = (b as any).areaId || inferred.areaId;
+                    const reservationId = b.reservationId;
+                    const isMissingData = !roomId || !reservationId;
+
+                    return (
+                      <TableRow
+                        key={b._id}
+                        className={`cursor-pointer ${
+                          isMissingData
+                            ? "bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30 border-l-4 border-l-red-500"
+                            : ""
+                        }`}
+                        onClick={() => router.push(`/bookings/${b._id}`)}
+                      >
+                        <TableCell className="font-medium">
+                          {b.customerName || "-"}
+                        </TableCell>
+                        <TableCell>{formatDate(b.checkIn)}</TableCell>
+                        <TableCell>{formatDate(b.checkOut)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="h-4 w-4" />
+                            <span>
+                              {`${(b as any).adults ?? 0}`}
+                              {((b as any).children_0_5 ?? 0) +
+                                ((b as any).children_6_12 ?? 0) >
+                              0
+                                ? ` + ${
+                                    ((b as any).children_0_5 ?? 0) +
+                                    ((b as any).children_6_12 ?? 0)
+                                  } kids`
+                                : ""}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              !roomId
+                                ? "text-red-600 dark:text-red-400 font-semibold"
+                                : ""
+                            }
+                          >
+                            {roomId || "-"}
                           </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const inferred = extractRoomInfo(
-                            (b as any).bookingSummary
-                          );
-                          const roomId = (b as any).areaId || inferred.areaId;
-                          return roomId || "-";
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          {(() => {
-                            const inferred = extractRoomInfo(
-                              (b as any).bookingSummary
-                            );
-                            const roomNumber =
-                              (b as any).roomNumber || inferred.roomNumber;
-                            const roomType =
-                              (b as any).roomType || inferred.roomType;
-                            const text =
-                              [roomNumber, roomType]
-                                .filter(Boolean)
-                                .join(" / ") || "-";
-                            return <span>{text}</span>;
-                          })()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {typeof b.roomPrice === "number" ? (
-                          <span>
-                            {b.roomPrice.toLocaleString("en-IN", {
-                              style: "currency",
-                              currency: "INR",
-                            })}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              !reservationId
+                                ? "text-red-600 dark:text-red-400 font-semibold"
+                                : ""
+                            }
+                          >
+                            {reservationId || "-"}
                           </span>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={b.paymentConfirmed ? "default" : "secondary"}
-                        >
-                          <Tag className="h-3 w-3" />
-                          {b.paymentStatus ||
-                            (b.paymentConfirmed ? "Confirmed" : "Pending")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{b.stage || "-"}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            {(() => {
+                              const roomNumber =
+                                (b as any).roomNumber || inferred.roomNumber;
+                              const roomType =
+                                (b as any).roomType || inferred.roomType;
+                              const text =
+                                [roomNumber, roomType]
+                                  .filter(Boolean)
+                                  .join(" / ") || "-";
+                              return <span>{text}</span>;
+                            })()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {typeof b.roomPrice === "number" ? (
+                            <span>
+                              {b.roomPrice.toLocaleString("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                              })}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              b.paymentConfirmed ? "default" : "secondary"
+                            }
+                          >
+                            <Tag className="h-3 w-3" />
+                            {b.paymentStatus ||
+                              (b.paymentConfirmed ? "Confirmed" : "Pending")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{b.stage || "-"}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
