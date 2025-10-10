@@ -21,6 +21,7 @@ export type Booking = {
   // Optional UI helpers
   bookingSummary?: string;
   paymentId?: string;
+  reservationId?: string;
 };
 
 export type BookingsResponse = {

@@ -158,7 +158,7 @@ export default function BookingDetailsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Hash className="h-4 w-4" />{" "}
@@ -185,6 +185,16 @@ export default function BookingDetailsPage() {
                 </div>
                 <div className="font-mono text-sm break-all">
                   {booking.paymentId || "-"}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Hash className="h-4 w-4" />{" "}
+                  <span className="text-muted-foreground">Reservation ID</span>
+                </div>
+                <div className="font-mono text-sm break-all">
+                  {booking.reservationId || "-"}
                 </div>
               </div>
             </div>
